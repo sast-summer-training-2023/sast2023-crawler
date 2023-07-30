@@ -6,3 +6,4 @@ notebook
 jupyter
 webdriver-manager
 selenuim
+scrapy
