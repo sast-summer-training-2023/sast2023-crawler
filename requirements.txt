@@ -5,5 +5,5 @@ tqdm
 notebook
 jupyter
 webdriver-manager
-selenuim
+selenium
 scrapy
