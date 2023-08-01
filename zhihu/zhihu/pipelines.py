@@ -6,8 +6,10 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
+import logging
 
 
 class ZhihuPipeline:
     def process_item(self, item, spider):
+        logging.info(item)
         return item

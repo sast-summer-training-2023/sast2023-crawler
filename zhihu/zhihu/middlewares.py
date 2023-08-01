@@ -4,9 +4,20 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+import scrapy
+import logging
+import re
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
+
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.support.ui import WebDriverWait as wdw
+from selenium.webdriver.support import expected_conditions as EC
+import selenium
 
 
 class ZhihuSpiderMiddleware:
@@ -78,7 +89,33 @@ class ZhihuDownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-        return None
+        if not re.match(r"https://www.zhihu.com/question/\d+", request.url):
+            return None
+
+        chrome_opetions = ChromeOptions()
+        chrome_opetions.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        # chrome_opetions.add_argument("--headless")
+        driver = selenium.webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_opetions)
+        driver.get(request.url)
+
+        wdw(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[5]/div/div/div/div[2]/button')))
+
+        button_quit = driver.find_element(By.XPATH, '/html/body/div[5]/div/div/div/div[2]/button')
+        button_quit.click()
+
+        while True:
+            driver.execute_script("window.scrollBy(0, -10);")
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            if driver.find_elements(By.XPATH, '//*[@id="root"]/div/main/div/div/div[3]/div[1]/div/div[2]/a/button'):
+                break
+
+        logging.info("finefine")
+        
+        response = scrapy.http.HtmlResponse(url=request.url, body=driver.page_source, encoding="utf-8", request=request)
+
+        driver.quit()
+
+        return response
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.

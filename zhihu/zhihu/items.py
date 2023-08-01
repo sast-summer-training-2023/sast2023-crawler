@@ -7,6 +7,6 @@ import scrapy
 
 
 class ZhihuItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    question_id = scrapy.Field()
+    author_name = scrapy.Field()
+    like_count = scrapy.Field()
